@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Memorice Ancestral: Momias Chinchorro • Chile Re-Descubre 2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+
+  <!-- MediaPipe Hands & Camera Utils -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+  <style>
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: #070b14;
+      color: #f8fafc;
+      overflow-x: hidden;
+      user-select: none;
+    }
+    .font-title {
+      font-family: 'Cinzel', serif;
+    }
+
+    /* Animación 3D para voltear fichas */
+    .card-scene {
+      perspective: 900px;
+    }
+    .card-inner {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+      transform-style: preserve-3d;
+    }
+    .card-inner.is-flipped {
+      transform: rotateY(180deg);
+    }
+    .card-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: 1rem;
+    }
+    .card-front {
+      transform: rotateY(180deg);
+    }
+
+    /* Resaltado cuando el cursor de mano está encima */
+    .card-hovered {
+      box-shadow: 0 0 0 3px #22d3ee, 0 0 24px rgba(34, 211, 238, 0.7);
+      transform: scale(1.03);
+    }
+
+    /* Fondo temático Desierto Costero / Chinchorro */
+    .bg-chinchorro {
+      background:
+        radial-gradient(circle at 20% 15%, rgba(14, 116, 144, 0.28), transparent 50%),
+        radial-gradient(circle at 80% 85%, rgba(180, 83, 9, 0.22), transparent 55%),
+        #070b14;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-chinchorro flex flex-col justify-between">
+
+  <!-- Barra Superior -->
+  <header class="w-full px-4 md:px-8 py-3 bg-slate-950/90 border-b border-cyan-500/25 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 z-30">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 via-teal-500 to-amber-500 flex items-center justify-center text-xl shadow-lg">
+        🗿
+      </div>
+      <div>
+        <span class="inline-block text-[10px] font-extrabold uppercase tracking-widest text-amber-300">
+          Chile Re-Descubre 2026 • Hito: Momias Chinchorro
+        </span>
+        <h1 class="font-title text-base md:text-xl font-black tracking-wide text-cyan-200 leading-tight">
+          MEMORICE ANCESTRAL CHINCHORRO
+        </h1>
+      </div>
+    </div>
+
+    <!-- Indicadores de Partida -->
+    <div class="flex items-center gap-2.5 md:gap-4">
+      <div class="px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-cyan-500/30 text-center">
+        <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Pares</p>
+        <p class="text-sm md:text-base font-black text-cyan-300"><span id="matches-count">0</span> / 6</p>
+      </div>
+      <div class="px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700 text-center">
+        <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Tiempo</p>
+        <p id="timer-display" class="text-sm md:text-base font-black text-amber-300">00:00</p>
+      </div>
+      <div class="hidden sm:block px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700 text-center">
+        <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Intentos</p>
+        <p id="moves-display" class="text-sm md:text-base font-black text-slate-200">0</p>
+      </div>
+    </div>
+
+    <!-- Botones de Control -->
+    <div class="flex items-center gap-2">
+      <button id="btn-cam" class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs transition shadow-lg shadow-amber-500/20 flex items-center gap-1.5 cursor-pointer">
+        <span>📷</span> Activar Cámara
+      </button>
+      <button id="btn-mouse-mode" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-semibold text-xs transition cursor-pointer">
+        🖱️ Mouse
+      </button>
+      <button id="btn-restart" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-semibold text-xs transition cursor-pointer">
+        🔄 Reiniciar
+      </button>
+    </div>
+  </header>
+
+  <!-- Área Principal del Tablero -->
+  <main class="relative flex-1 flex flex-col items-center justify-center px-4 py-5 md:px-8">
+
+    <!-- Barra de Estado / Instrucción Rápida -->
+    <div id="status-pill" class="mb-4 px-4 py-1.5 rounded-full bg-slate-900/90 border border-cyan-500/30 text-xs font-bold text-slate-200 flex items-center gap-2 shadow">
+      <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+      <span id="status-text">Mueve tu mano abierta (🖐️) sobre una ficha y cierra el puño (✊) para voltearla</span>
+    </div>
+
+    <!-- Tablero de 12 Fichas (4 columnas x 3 filas = 6 pares) -->
+    <div id="game-grid" class="grid grid-cols-3 sm:grid-cols-4 gap-3 md:gap-4 max-w-3xl w-full mx-auto z-10">
+      <!-- Generado dinámicamente por JS -->
+    </div>
+
+    <!-- Barra Inferior de Palabras Capturadas -->
+    <div class="mt-5 max-w-3xl w-full bg-slate-950/80 border border-cyan-500/25 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-2 z-10">
+      <span class="text-xs font-bold text-cyan-300">Conceptos Chinchorro capturados:</span>
+      <div id="captured-pills" class="flex flex-wrap gap-1.5">
+        <!-- Generado por JS -->
+      </div>
+    </div>
+
+    <!-- Modal Flotante de Palabra Clave al hacer Match -->
+    <div id="match-modal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4 z-30">
+      <div class="max-w-md w-full bg-slate-900 border-2 border-cyan-400 rounded-3xl p-6 md:p-7 flex flex-col items-center text-center shadow-2xl">
+        <span class="px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 text-xs font-extrabold uppercase tracking-widest mb-2">
+          ¡Par Encontrado! Memoriza este dato
+        </span>
+        <div id="match-icon" class="text-5xl mb-2">🎭</div>
+        <h2 id="match-word" class="font-title text-3xl md:text-4xl font-black text-cyan-300 tracking-wider mb-3">
+          MANGANESO
+        </h2>
+        <p id="match-fact" class="text-sm text-slate-200 mb-5 leading-relaxed">
+          Dato histórico aquí.
+        </p>
+        <div class="w-52 h-2 bg-slate-800 rounded-full overflow-hidden mb-3">
+          <div id="match-timer" class="h-full bg-cyan-400 transition-all duration-100" style="width: 100%"></div>
+        </div>
+        <button onclick="closeMatchModal()" class="px-5 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-xs transition cursor-pointer">
+          ¡Listo, ya lo memoricé!
+        </button>
+      </div>
+    </div>
+
+    <!-- Visor Flotante PIP de Cámara (Esquina Inferior Derecha) -->
+    <div id="pip-wrapper" class="hidden fixed bottom-4 right-4 z-30 pointer-events-none">
+      <div class="w-48 h-36 rounded-2xl overflow-hidden border-2 border-cyan-400/80 shadow-2xl bg-slate-950/95 relative">
+        <video id="videoInput" class="hidden" playsinline></video>
+        <canvas id="pipCanvas" class="w-full h-full block"></canvas>
+        <div class="absolute bottom-1 inset-x-1.5 flex justify-between items-center text-[10px] font-extrabold px-2 py-0.5 rounded-lg bg-black/75">
+          <span class="text-cyan-300">TRACKING IA</span>
+          <span id="pip-gesture-label" class="text-amber-300">🖐️ ABIERTA</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cursor Virtual de Mano -->
+    <div id="hand-cursor" class="hidden fixed w-12 h-12 -ml-6 -mt-6 rounded-full border-2 border-cyan-300 bg-cyan-400/25 shadow-lg shadow-cyan-400/50 pointer-events-none z-40 flex items-center justify-center text-xl transition-transform duration-75">
+      🖐️
+    </div>
+  </main>
+
+  <!-- ==================== MODAL DE BIENVENIDA ==================== -->
+  <div id="welcome-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 z-50">
+    <div class="max-w-xl w-full bg-slate-900 border-2 border-cyan-500/40 rounded-3xl p-6 md:p-8 text-center shadow-2xl">
+      <span class="inline-block px-3 py-1 rounded-full bg-amber-500/20 border border-amber-400/40 text-amber-300 text-xs font-extrabold uppercase tracking-widest mb-3">
+        Concurso Chile Re-Descubre 2026
+      </span>
+      <div class="text-5xl mb-2">🗿</div>
+      <h2 class="font-title text-2xl md:text-3xl font-black text-white mb-2">
+        Momias Chinchorro: Memoria Ancestral
+      </h2>
+      <p class="text-sm text-slate-300 mb-6 leading-relaxed">
+        Descubre los secretos de la momificación artificial más antigua del mundo (5.050 a.C., Norte de Chile) mediante interacción natural sin contacto.
+      </p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left mb-6">
+        <div class="bg-slate-950/80 border border-slate-800 p-3.5 rounded-2xl">
+          <div class="text-xl mb-1">🖐️ + ✊</div>
+          <p class="text-xs font-bold text-white mb-1">1. Interacción Natural</p>
+          <p class="text-[11px] text-slate-400">Apunta tu mano sobre una ficha y cierra el puño (✊) o haz pinza (👌) para voltearla.</p>
+        </div>
+        <div class="bg-slate-950/80 border border-slate-800 p-3.5 rounded-2xl">
+          <div class="text-xl mb-1">🗿 + 🧠</div>
+          <p class="text-xs font-bold text-white mb-1">2. Captura 6 Datos</p>
+          <p class="text-[11px] text-slate-400">Cada par revela una palabra o año clave científico. Memorízalo antes de que se oculte.</p>
+        </div>
+        <div class="bg-slate-950/80 border border-slate-800 p-3.5 rounded-2xl">
+          <div class="text-xl mb-1">✍️ + 🏆</div>
+          <p class="text-xs font-bold text-white mb-1">3. Desafío Final</p>
+          <p class="text-[11px] text-slate-400">Al completar el tablero, demuestra cuánto recuerdas escribiendo los 6 datos clave.</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap justify-center gap-3">
+        <button id="start-cam-welcome" class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-teal-500 hover:from-cyan-400 hover:to-teal-400 text-slate-950 font-black text-sm md:text-base shadow-xl transition transform hover:scale-105 cursor-pointer">
+          📷 Jugar con Cámara (MediaPipe)
+        </button>
+        <button id="start-mouse-welcome" class="px-6 py-3.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-bold text-sm md:text-base transition cursor-pointer">
+          🖱️ Jugar con Mouse / Táctil
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL DE PRUEBA DE MEMORIA (6 DATOS) ==================== -->
+  <div id="recall-modal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
+    <div class="max-w-lg w-full bg-slate-900 border-2 border-cyan-400 rounded-3xl p-6 md:p-8 shadow-2xl">
+      <div class="text-center mb-5">
+        <span class="inline-block px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 text-xs font-extrabold uppercase tracking-widest mb-2">
+          🗿 ¡Tablero Completado!
+        </span>
+        <h2 class="font-title text-2xl md:text-3xl font-black text-white">
+          Prueba de Memoria Chinchorro
+        </h2>
+        <p class="text-xs md:text-sm text-slate-300 mt-1">
+          Escribe las 5 palabras clave y el año que descubriste en tus parejas (en cualquier orden):
+        </p>
+      </div>
+
+      <form id="recall-form" class="space-y-3">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 mb-1">Dato Clave #1</label>
+            <input type="text" id="word-input-0" autocomplete="off" placeholder="Escribe aquí..." class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-400 focus:outline-none text-white font-bold uppercase text-sm" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 mb-1">Dato Clave #2</label>
+            <input type="text" id="word-input-1" autocomplete="off" placeholder="Escribe aquí..." class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-400 focus:outline-none text-white font-bold uppercase text-sm" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 mb-1">Dato Clave #3</label>
+            <input type="text" id="word-input-2" autocomplete="off" placeholder="Escribe aquí..." class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-400 focus:outline-none text-white font-bold uppercase text-sm" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 mb-1">Dato Clave #4</label>
+            <input type="text" id="word-input-3" autocomplete="off" placeholder="Escribe aquí..." class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-400 focus:outline-none text-white font-bold uppercase text-sm" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 mb-1">Dato Clave #5</label>
+            <input type="text" id="word-input-4" autocomplete="off" placeholder="Escribe aquí..." class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-400 focus:outline-none text-white font-bold uppercase text-sm" />
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-400 mb-1">Dato Clave #6</label>
+            <input type="text" id="word-input-5" autocomplete="off" placeholder="Escribe aquí..." class="w-full px-3.5 py-2 rounded-xl bg-slate-950 border border-slate-700 focus:border-cyan-400 focus:outline-none text-white font-bold uppercase text-sm" />
+          </div>
+        </div>
+
+        <button type="submit" class="w-full mt-4 py-3.5 rounded-2xl bg-gradient-to-r from-cyan-500 to-emerald-500 hover:from-cyan-400 hover:to-emerald-400 text-slate-950 font-black text-sm md:text-base shadow-lg transition cursor-pointer">
+          ✅ Verificar mis 6 Datos
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL DE RESULTADO FINAL ==================== -->
+  <div id="result-modal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 z-50">
+    <div class="max-w-xl w-full bg-slate-900 border-2 border-amber-400 rounded-3xl p-6 md:p-8 text-center shadow-2xl">
+      <div id="result-emoji" class="text-6xl mb-2">🗿🏆</div>
+      <h2 id="result-title" class="font-title text-2xl md:text-3xl font-black text-cyan-300 mb-2">
+        ¡Memoria Ancestral Desbloqueada!
+      </h2>
+      <p id="result-desc" class="text-sm md:text-base text-slate-200 mb-4 leading-relaxed">
+        Acertaste 6 de 6 datos de la Cultura Chinchorro.
+      </p>
+
+      <!-- Métricas y desglose de palabras -->
+      <div class="bg-slate-950/85 p-4 rounded-2xl border border-slate-800 text-left mb-6 space-y-3">
+        <div class="flex justify-between text-xs font-bold text-slate-400 border-b border-slate-800 pb-2">
+          <span>⏱️ Tiempo total: <strong id="final-time" class="text-amber-300">00:00</strong></span>
+          <span>🎯 Intentos: <strong id="final-moves" class="text-cyan-300">0</strong></span>
+        </div>
+        <div>
+          <p class="text-xs font-extrabold text-cyan-300 mb-2">🗿 Los 6 pilares científicos Chinchorro:</p>
+          <div id="result-words-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+            <!-- Generado dinámicamente con estado acertado/pendiente -->
+          </div>
+        </div>
+      </div>
+
+      <button onclick="resetFullGame()" class="px-7 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-sm md:text-base shadow-xl transition cursor-pointer">
+        🔄 Jugar Nuevamente
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. DATOS EDUCATIVOS: HITO "MOMIAS CHINCHORRO" (HECHO EN CHILE)
+    // =========================================================================
+    const CHINCHORRO_PAIRS = [
+      {
+        pairId: 'c1',
+        word: 'MANGANESO',
+        aliases: ['MANGANESO'],
+        icon: '🎭',
+        colorClass: 'from-slate-800 to-cyan-900 border-cyan-400',
+        fact: 'Pintaban las máscaras de sus momias con pasta negra de óxido de manganeso hace más de 7.000 años.'
+      },
+      {
+        pairId: 'c2',
+        word: 'ATACAMA',
+        aliases: ['ATACAMA'],
+        icon: '🏜️',
+        colorClass: 'from-orange-900 to-amber-800 border-orange-400',
+        fact: 'La extrema aridez del Desierto de Atacama ayudó a preservar los cuerpos de forma natural y artificial.'
+      },
+      {
+        pairId: 'c3',
+        word: 'IGUALDAD',
+        aliases: ['IGUALDAD'],
+        icon: '👨‍👩‍👧‍👦',
+        colorClass: 'from-teal-900 to-emerald-900 border-emerald-400',
+        fact: 'A diferencia de otras culturas, los Chinchorro momificaban a toda la comunidad sin distinción, incluidos niños y bebés.'
+      },
+      {
+        pairId: 'c4',
+        word: 'TOTORA',
+        aliases: ['TOTORA'],
+        icon: '🌾',
+        colorClass: 'from-purple-900 to-indigo-900 border-purple-400',
+        fact: 'Reforzaban el esqueleto con varillas de madera y fibras vegetales de totora para dar rigidez estructural al cuerpo.'
+      },
+      {
+        pairId: 'c5',
+        word: 'ARCILLA',
+        aliases: ['ARCILLA'],
+        icon: '🏺',
+        colorClass: 'from-stone-800 to-amber-900 border-amber-300',
+        fact: 'Modelaban el rostro y el cuerpo utilizando pastas de arcilla gris y blanca para devolverle volumen y expresión.'
+      },
+      {
+        pairId: 'c6',
+        word: '5.050 A.C.',
+        aliases: ['5050 AC', '5050 A C', '5050'],
+        icon: '⏳',
+        colorClass: 'from-cyan-950 to-blue-900 border-sky-400',
+        fact: 'Con más de 7.000 años (5.050 a.C.), son las momias artificiales más antiguas del mundo, 2.000 años previas a Egipto.'
+      }
+    ];
+
+    // =========================================================================
+    // 2. ESTADO DEL JUEGO (UN JUGADOR)
+    // =========================================================================
+    let audioCtx = null;
+    let cameraActive = false;
+    let gamePhase = 'idle'; // 'idle' | 'playing' | 'recall' | 'ended'
+    let cards = [];
+    let flippedIndices = [];
+    let matchedPairIds = [];
+    let lockBoard = false;
+    let modalTimerInterval = null;
+    let hoveredCardIndex = -1;
+    let wasClosedGesture = false;
+
+    let movesCount = 0;
+    let elapsedSeconds = 0;
+    let gameClockInterval = null;
+
+    // =========================================================================
+    // 3. SÍNTESIS DE SONIDO (WEB AUDIO API)
+    // =========================================================================
+    function ensureAudio() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+    }
+
+    function playTone(type) {
+      if (!audioCtx) return;
+      const now = audioCtx.currentTime;
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'flip') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(340, now);
+        osc.frequency.exponentialRampToValueAtTime(520, now + 0.09);
+        gain.gain.setValueAtTime(0.14, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+        osc.start(now);
+        osc.stop(now + 0.1);
+      } else if (type === 'match') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(523.25, now);
+        osc.frequency.setValueAtTime(659.25, now + 0.1);
+        osc.frequency.setValueAtTime(783.99, now + 0.2);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+        osc.start(now);
+        osc.stop(now + 0.45);
+      } else if (type === 'win') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.setValueAtTime(554.37, now + 0.12);
+        osc.frequency.setValueAtTime(659.25, now + 0.24);
+        osc.frequency.setValueAtTime(880, now + 0.36);
+        gain.gain.setValueAtTime(0.22, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + 0.7);
+        osc.start(now);
+        osc.stop(now + 0.7);
+      }
+    }
+
+    // =========================================================================
+    // 4. CRONÓMETRO Y CONSTRUCCIÓN DEL TABLERO
+    // =========================================================================
+    function formatTime(sec) {
+      const m = String(Math.floor(sec / 60)).padStart(2, '0');
+      const s = String(sec % 60).padStart(2, '0');
+      return `${m}:${s}`;
+    }
+
+    function startClock() {
+      stopClock();
+      elapsedSeconds = 0;
+      document.getElementById('timer-display').textContent = '00:00';
+      gameClockInterval = setInterval(() => {
+        if (gamePhase === 'playing' && !lockBoard) {
+          elapsedSeconds++;
+          document.getElementById('timer-display').textContent = formatTime(elapsedSeconds);
+        }
+      }, 1000);
+    }
+
+    function stopClock() {
+      if (gameClockInterval) {
+        clearInterval(gameClockInterval);
+        gameClockInterval = null;
+      }
+    }
+
+    function shuffleArray(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function buildBoard() {
+      const duplicated = [...CHINCHORRO_PAIRS, ...CHINCHORRO_PAIRS].map((item, idx) => ({
+        ...item,
+        uid: `card-${idx}`,
+        matched: false,
+        flipped: false
+      }));
+
+      cards = shuffleArray(duplicated);
+      flippedIndices = [];
+      matchedPairIds = [];
+      lockBoard = false;
+      hoveredCardIndex = -1;
+      movesCount = 0;
+      document.getElementById('moves-display').textContent = '0';
+
+      renderBoardHTML();
+      updateCapturedPills();
+    }
+
+    function renderBoardHTML() {
+      const gridEl = document.getElementById('game-grid');
+      gridEl.innerHTML = '';
+
+      cards.forEach((card, index) => {
+        const cardBtn = document.createElement('button');
+        cardBtn.type = 'button';
+        cardBtn.id = `card-${index}`;
+        cardBtn.className = 'card-scene aspect-[4/3] sm:aspect-[5/4] w-full focus:outline-none transition-transform duration-150 cursor-pointer';
+        cardBtn.addEventListener('click', () => handleCardFlip(index));
+
+        cardBtn.innerHTML = `
+          <div id="card-inner-${index}" class="card-inner">
+            <!-- Reverso de la ficha -->
+            <div class="card-face bg-gradient-to-br from-slate-900 via-cyan-950 to-slate-900 border-2 border-cyan-500/45 hover:border-cyan-300 flex flex-col items-center justify-center p-2 shadow-lg">
+              <span class="text-3xl md:text-4xl mb-1 opacity-90">🗿</span>
+              <span class="text-[10px] font-extrabold tracking-widest text-cyan-200/70">CHINCHORRO</span>
+            </div>
+            <!-- Frente de la ficha (al voltearse) -->
+            <div class="card-face card-front bg-gradient-to-br ${card.colorClass} border-2 flex flex-col items-center justify-center p-2 shadow-xl">
+              <span class="text-3xl md:text-4xl mb-1.5 drop-shadow">${card.icon}</span>
+              <span class="text-[10px] md:text-xs font-black tracking-wider text-white bg-black/40 px-2.5 py-0.5 rounded-full">
+                ???
+              </span>
+            </div>
+          </div>
+        `;
+        gridEl.appendChild(cardBtn);
+      });
+    }
+
+    function updateCapturedPills() {
+      const container = document.getElementById('captured-pills');
+      const countEl = document.getElementById('matches-count');
+      countEl.textContent = matchedPairIds.length;
+
+      let html = '';
+      for (let i = 0; i < 6; i++) {
+        if (i < matchedPairIds.length) {
+          html += `<span class="px-2.5 py-1 rounded-lg border bg-cyan-500/20 border-cyan-400/50 text-cyan-200 text-[11px] font-extrabold">🗿 Dato #${i + 1}</span>`;
+        } else {
+          html += `<span class="px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-700 text-[11px] text-slate-500">${i + 1}. ???</span>`;
+        }
+      }
+      container.innerHTML = html;
+    }
+
+    // =========================================================================
+    // 5. LÓGICA DE VOLTEO Y MATCH
+    // =========================================================================
+    function handleCardFlip(index) {
+      ensureAudio();
+      if (gamePhase !== 'playing' || lockBoard) return;
+
+      const card = cards[index];
+      if (!card || card.flipped || card.matched) return;
+      if (flippedIndices.length >= 2) return;
+
+      card.flipped = true;
+      flippedIndices.push(index);
+      document.getElementById(`card-inner-${index}`).classList.add('is-flipped');
+      playTone('flip');
+
+      if (flippedIndices.length === 2) {
+        movesCount++;
+        document.getElementById('moves-display').textContent = movesCount;
+
+        const [idxA, idxB] = flippedIndices;
+        const cardA = cards[idxA];
+        const cardB = cards[idxB];
+
+        if (cardA.pairId === cardB.pairId) {
+          cardA.matched = true;
+          cardB.matched = true;
+          flippedIndices = [];
+          matchedPairIds.push(cardA.pairId);
+          updateCapturedPills();
+          playTone('match');
+
+          revealWordOnCards(idxA, idxB, cardA.word);
+          openMatchModal(cardA);
+        } else {
+          lockBoard = true;
+          setTimeout(() => {
+            cardA.flipped = false;
+            cardB.flipped = false;
+            document.getElementById(`card-inner-${idxA}`).classList.remove('is-flipped');
+            document.getElementById(`card-inner-${idxB}`).classList.remove('is-flipped');
+            flippedIndices = [];
+            lockBoard = false;
+          }, 850);
+        }
+      }
+    }
+
+    function revealWordOnCards(idxA, idxB, word) {
+      [idxA, idxB].forEach((idx) => {
+        const inner = document.getElementById(`card-inner-${idx}`);
+        const badge = inner.querySelector('.card-front span:last-child');
+        if (badge) badge.textContent = word;
+      });
+    }
+
+    function openMatchModal(cardData) {
+      lockBoard = true;
+      const modal = document.getElementById('match-modal');
+      document.getElementById('match-icon').textContent = cardData.icon;
+      document.getElementById('match-word').textContent = cardData.word;
+      document.getElementById('match-fact').textContent = cardData.fact;
+
+      const timerBar = document.getElementById('match-timer');
+      timerBar.style.width = '100%';
+      modal.classList.remove('hidden');
+
+      let remaining = 100;
+      if (modalTimerInterval) clearInterval(modalTimerInterval);
+      modalTimerInterval = setInterval(() => {
+        remaining -= 2.2; // ~4.5 segundos para leer el dato
+        timerBar.style.width = `${Math.max(0, remaining)}%`;
+        if (remaining <= 0) {
+          closeMatchModal();
+        }
+      }, 100);
+    }
+
+    function closeMatchModal() {
+      if (modalTimerInterval) {
+        clearInterval(modalTimerInterval);
+        modalTimerInterval = null;
+      }
+
+      // Ocultar la palabra en las fichas para el desafío de memoria
+      cards.forEach((c, idx) => {
+        if (c.matched) {
+          const inner = document.getElementById(`card-inner-${idx}`);
+          const badge = inner?.querySelector('.card-front span:last-child');
+          if (badge) badge.textContent = 'MEMORIZADA';
+        }
+      });
+
+      document.getElementById('match-modal').classList.add('hidden');
+      lockBoard = false;
+
+      if (matchedPairIds.length === CHINCHORRO_PAIRS.length) {
+        openRecallTestModal();
+      }
+    }
+
+    // =========================================================================
+    // 6. PRUEBA DE MEMORIA FINAL (6 DATOS)
+    // =========================================================================
+    function openRecallTestModal() {
+      gamePhase = 'recall';
+      stopClock();
+
+      for (let i = 0; i < 6; i++) {
+        document.getElementById(`word-input-${i}`).value = '';
+      }
+
+      document.getElementById('recall-modal').classList.remove('hidden');
+      setTimeout(() => document.getElementById('word-input-0').focus(), 100);
+    }
+
+    function normalizeWord(str) {
+      return str
+        .trim()
+        .toUpperCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\./g, '')
+        .replace(/\s+/g, ' ');
+    }
+
+    document.getElementById('recall-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      if (gamePhase !== 'recall') return;
+
+      const userAnswers = [];
+      for (let i = 0; i < 6; i++) {
+        const val = normalizeWord(document.getElementById(`word-input-${i}`).value);
+        if (val && !userAnswers.includes(val)) {
+          userAnswers.push(val);
+        }
+      }
+
+      let correctCount = 0;
+      const summaryHTML = CHINCHORRO_PAIRS.map((item) => {
+        const hit = item.aliases.some((alias) => userAnswers.includes(normalizeWord(alias)));
+        if (hit) correctCount++;
+        return `
+          <div class="px-2.5 py-1.5 rounded-xl border ${hit ? 'bg-emerald-500/15 border-emerald-400/50 text-emerald-200' : 'bg-slate-900 border-slate-700 text-slate-400'} font-bold flex items-center justify-between">
+            <span>${item.icon} ${item.word}</span>
+            <span>${hit ? '✅' : '❌'}</span>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('recall-modal').classList.add('hidden');
+      showFinalResults(correctCount, summaryHTML);
+    });
+
+    function showFinalResults(correctCount, summaryHTML) {
+      gamePhase = 'ended';
+      playTone('win');
+
+      const resEmoji = document.getElementById('result-emoji');
+      const resTitle = document.getElementById('result-title');
+      const resDesc = document.getElementById('result-desc');
+
+      if (correctCount === 6) {
+        resEmoji.textContent = '🗿🏆';
+        resTitle.textContent = '¡Memoria Ancestral Perfecta!';
+        resDesc.textContent = 'Recordaste los 6 datos científicos de las Momias Chinchorro.';
+      } else if (correctCount >= 4) {
+        resEmoji.textContent = '🗿✨';
+        resTitle.textContent = '¡Gran Explorador Chinchorro!';
+        resDesc.textContent = `Recordaste ${correctCount} de 6 datos clave sobre la momificación más antigua del mundo.`;
+      } else {
+        resEmoji.textContent = '🗿📜';
+        resTitle.textContent = '¡Exploración Completada!';
+        resDesc.textContent = `Recordaste ${correctCount} de 6 datos. ¡Vuelve a intentarlo para dominar todo el legado Chinchorro!`;
+      }
+
+      document.getElementById('final-time').textContent = formatTime(elapsedSeconds);
+      document.getElementById('final-moves').textContent = movesCount;
+      document.getElementById('result-words-grid').innerHTML = summaryHTML;
+      document.getElementById('result-modal').classList.remove('hidden');
+      updateStatus('Partida finalizada');
+    }
+
+    function updateStatus(text) {
+      document.getElementById('status-text').textContent = text;
+    }
+
+    // =========================================================================
+    // 7. INTEGRACIÓN MEDIAPIPE HANDS (UN JUGADOR - PANTALLA COMPLETA)
+    // =========================================================================
+    const videoInput = document.getElementById('videoInput');
+    const pipCanvas = document.getElementById('pipCanvas');
+    const pipCtx = pipCanvas.getContext('2d');
+
+    function dist2D(a, b) {
+      return Math.hypot(a.x - b.x, a.y - b.y);
+    }
+
+    // Detecta puño cerrado (✊) o pinza (👌) para voltear la ficha
+    function isClickGesture(lm) {
+      if (!lm || lm.length < 21) return false;
+      const wrist = lm[0];
+      const palmSize = dist2D(wrist, lm[9]);
+      if (palmSize < 0.01) return false;
+
+      // Pinza entre pulgar (4) e índice (8)
+      const pinchDist = dist2D(lm[4], lm[8]) / palmSize;
+      if (pinchDist < 0.42) return true;
+
+      // Puño cerrado
+      const avgTipDist =
+        (dist2D(wrist, lm[8]) +
+          dist2D(wrist, lm[12]) +
+          dist2D(wrist, lm[16]) +
+          dist2D(wrist, lm[20])) /
+        (4 * palmSize);
+
+      return avgTipDist < 1.15;
+    }
+
+    function updateHandCursorAndSelection(lm) {
+      const cursorEl = document.getElementById('hand-cursor');
+      const gestureLabel = document.getElementById('pip-gesture-label');
+
+      if (hoveredCardIndex !== -1) {
+        const prevCard = document.getElementById(`card-${hoveredCardIndex}`);
+        if (prevCard) prevCard.classList.remove('card-hovered');
+        hoveredCardIndex = -1;
+      }
+
+      if (!lm || gamePhase !== 'playing') {
+        cursorEl.classList.add('hidden');
+        if (gestureLabel) gestureLabel.textContent = 'BUSCANDO MANO';
+        return;
+      }
+
+      // Mapeo en espejo (X invertida) a toda la ventana
+      const mirrorX = 1 - lm[9].x;
+      const normY = lm[9].y;
+      const screenX = mirrorX * window.innerWidth;
+      const screenY = normY * window.innerHeight;
+
+      const closed = isClickGesture(lm);
+      cursorEl.classList.remove('hidden');
+      cursorEl.style.left = `${screenX}px`;
+      cursorEl.style.top = `${screenY}px`;
+      cursorEl.textContent = closed ? '✊' : '🖐️';
+      if (gestureLabel) gestureLabel.textContent = closed ? '✊ VOLTEAR' : '🖐️ MOVER';
+
+      cards.forEach((_, idx) => {
+        const cardEl = document.getElementById(`card-${idx}`);
+        if (!cardEl) return;
+        const r = cardEl.getBoundingClientRect();
+        if (screenX >= r.left && screenX <= r.right && screenY >= r.top && screenY <= r.bottom) {
+          hoveredCardIndex = idx;
+          cardEl.classList.add('card-hovered');
+        }
+      });
+
+      if (closed && !wasClosedGesture && hoveredCardIndex !== -1) {
+        handleCardFlip(hoveredCardIndex);
+      }
+      wasClosedGesture = closed;
+    }
+
+    async function initMediaPipeCamera() {
+      ensureAudio();
+      document.getElementById('welcome-modal').classList.add('hidden');
+      startNewSession();
+
+      if (cameraActive) return;
+      updateStatus('Iniciando cámara y seguimiento de mano...');
+
+      try {
+        pipCanvas.width = 192;
+        pipCanvas.height = 144;
+
+        const hands = new Hands({
+          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+        });
+
+        hands.setOptions({
+          maxNumHands: 1,
+          modelComplexity: 1,
+          minDetectionConfidence: 0.65,
+          minTrackingConfidence: 0.6
+        });
+
+        hands.onResults((results) => {
+          const handLm = results.multiHandLandmarks && results.multiHandLandmarks.length > 0
+            ? results.multiHandLandmarks[0]
+            : null;
+
+          // Dibujar PIP de cámara en espejo
+          pipCtx.save();
+          pipCtx.clearRect(0, 0, pipCanvas.width, pipCanvas.height);
+          pipCtx.scale(-1, 1);
+          pipCtx.drawImage(videoInput, -pipCanvas.width, 0, pipCanvas.width, pipCanvas.height);
+          pipCtx.restore();
+
+          if (handLm) {
+            pipCtx.fillStyle = '#22d3ee';
+            [0, 4, 8, 9, 12, 16, 20].forEach((i) => {
+              pipCtx.beginPath();
+              pipCtx.arc((1 - handLm[i].x) * pipCanvas.width, handLm[i].y * pipCanvas.height, 3.5, 0, Math.PI * 2);
+              pipCtx.fill();
+            });
+          }
+
+          updateHandCursorAndSelection(handLm);
+        });
+
+        const camera = new Camera(videoInput, {
+          onFrame: async () => {
+            await hands.send({ image: videoInput });
+          },
+          width: 640,
+          height: 480
+        });
+
+        await camera.start();
+        cameraActive = true;
+        document.getElementById('pip-wrapper').classList.remove('hidden');
+        updateStatus('¡Cámara activa! Mueve tu mano (🖐️) y cierra el puño (✊) para voltear');
+      } catch (err) {
+        console.error(err);
+        updateStatus('Modo Mouse activo (no se detectó cámara)');
+      }
+    }
+
+    // =========================================================================
+    // 8. INICIO Y REINICIO
+    // =========================================================================
+    function startNewSession() {
+      gamePhase = 'playing';
+      document.getElementById('match-modal').classList.add('hidden');
+      document.getElementById('recall-modal').classList.add('hidden');
+      document.getElementById('result-modal').classList.add('hidden');
+
+      buildBoard();
+      startClock();
+      updateStatus('Encuentra los 6 pares de la Cultura Chinchorro y memoriza cada dato');
+    }
+
+    function resetFullGame() {
+      ensureAudio();
+      document.getElementById('welcome-modal').classList.add('hidden');
+      startNewSession();
+    }
+
+    document.getElementById('start-cam-welcome').addEventListener('click', initMediaPipeCamera);
+    document.getElementById('btn-cam').addEventListener('click', initMediaPipeCamera);
+    document.getElementById('start-mouse-welcome').addEventListener('click', () => {
+      ensureAudio();
+      document.getElementById('welcome-modal').classList.add('hidden');
+      startNewSession();
+    });
+    document.getElementById('btn-mouse-mode').addEventListener('click', () => {
+      ensureAudio();
+      document.getElementById('welcome-modal').classList.add('hidden');
+      startNewSession();
+    });
+    document.getElementById('btn-restart').addEventListener('click', resetFullGame);
+
+    // Pre-construir tablero de fondo al cargar
+    buildBoard();
+  </script>
+</body>
+</html>
