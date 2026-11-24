@@ -1,5 +1,5 @@
 # 🗿 Memorice Ancestral: Momias Chinchorro
-**Proyecto Final Unidad 3 — Taller de Diseño de Interfaces 
+Proyecto Final Unidad 3 — Taller de Diseño de Interfaces 
 **Postulación Concurso *Chile Re-Descubre*
 
 ---
