@@ -12,10 +12,10 @@
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
   <style>
-    body {
-      font-family: 'Outfit', sans-serif;
-      background-color: #fff0f6;
-      color: #4a1530;
+    html, body {
+      font-family: 'Outfit', sans-serif !important;
+      background-color: #ffe4ef !important;
+      color: #500724 !important;
       overflow-x: hidden;
       user-select: none;
     }
@@ -50,29 +50,29 @@
 
     /* Resaltado cuando el cursor de mano está encima */
     .card-hovered {
-      box-shadow: 0 0 0 3px #ec4899, 0 0 24px rgba(236, 72, 153, 0.6);
+      box-shadow: 0 0 0 4px #db2777, 0 0 25px rgba(219, 39, 119, 0.65) !important;
       transform: scale(1.03);
     }
 
-    /* Fondo temático Rosita Pastel */
+    /* Fondo temático Rosita */
     .bg-chinchorro {
       background:
-        radial-gradient(circle at 20% 15%, rgba(244, 114, 182, 0.25), transparent 50%),
-        radial-gradient(circle at 80% 85%, rgba(251, 113, 133, 0.22), transparent 55%),
-        #fff0f6;
+        radial-gradient(circle at 20% 15%, rgba(244, 114, 182, 0.38), transparent 50%),
+        radial-gradient(circle at 80% 85%, rgba(251, 113, 133, 0.32), transparent 55%),
+        #ffe4ef !important;
     }
   </style>
 </head>
 <body class="min-h-screen bg-chinchorro flex flex-col justify-between">
 
   <!-- Barra Superior -->
-  <header class="w-full px-4 md:px-8 py-3 bg-white/90 border-b border-pink-300 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 z-30 shadow-sm">
+  <header class="w-full px-4 md:px-8 py-3 bg-pink-50/95 border-b-2 border-pink-300 backdrop-blur-md flex flex-wrap items-center justify-between gap-3 z-30 shadow-sm">
     <div class="flex items-center gap-3">
       <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-400 via-rose-400 to-fuchsia-400 flex items-center justify-center text-xl shadow-md">
         🗿
       </div>
       <div>
-        <span class="inline-block text-[10px] font-extrabold uppercase tracking-widest text-rose-500">
+        <span class="inline-block text-[10px] font-extrabold uppercase tracking-widest text-rose-600">
           Chile Re-Descubre 2026 • Hito: Momias Chinchorro
         </span>
         <h1 class="font-title text-base md:text-xl font-black tracking-wide text-pink-700 leading-tight">
@@ -83,15 +83,15 @@
 
     <!-- Indicadores de Partida -->
     <div class="flex items-center gap-2.5 md:gap-4">
-      <div class="px-3.5 py-1.5 rounded-xl bg-pink-50 border border-pink-300 text-center">
+      <div class="px-3.5 py-1.5 rounded-xl bg-white border border-pink-300 text-center shadow-sm">
         <p class="text-[10px] uppercase tracking-wider text-pink-700 font-bold">Pares</p>
         <p class="text-sm md:text-base font-black text-pink-600"><span id="matches-count">0</span> / 6</p>
       </div>
-      <div class="px-3.5 py-1.5 rounded-xl bg-pink-50 border border-pink-200 text-center">
+      <div class="px-3.5 py-1.5 rounded-xl bg-white border border-pink-300 text-center shadow-sm">
         <p class="text-[10px] uppercase tracking-wider text-pink-700 font-bold">Tiempo</p>
         <p id="timer-display" class="text-sm md:text-base font-black text-rose-600">00:00</p>
       </div>
-      <div class="hidden sm:block px-3.5 py-1.5 rounded-xl bg-pink-50 border border-pink-200 text-center">
+      <div class="hidden sm:block px-3.5 py-1.5 rounded-xl bg-white border border-pink-300 text-center shadow-sm">
         <p class="text-[10px] uppercase tracking-wider text-pink-700 font-bold">Intentos</p>
         <p id="moves-display" class="text-sm md:text-base font-black text-pink-900">0</p>
       </div>
@@ -99,13 +99,13 @@
 
     <!-- Botones de Control -->
     <div class="flex items-center gap-2">
-      <button id="btn-cam" class="px-3.5 py-2 rounded-xl bg-pink-500 hover:bg-pink-600 text-white font-extrabold text-xs transition shadow-md shadow-pink-400/30 flex items-center gap-1.5 cursor-pointer">
+      <button id="btn-cam" class="px-3.5 py-2 rounded-xl bg-pink-500 hover:bg-pink-600 text-white font-extrabold text-xs transition shadow-md shadow-pink-400/40 flex items-center gap-1.5 cursor-pointer">
         <span>📷</span> Activar Cámara
       </button>
-      <button id="btn-mouse-mode" class="px-3.5 py-2 rounded-xl bg-pink-100 hover:bg-pink-200 border border-pink-300 text-pink-900 font-semibold text-xs transition cursor-pointer">
+      <button id="btn-mouse-mode" class="px-3.5 py-2 rounded-xl bg-pink-200 hover:bg-pink-300 border border-pink-400 text-pink-950 font-semibold text-xs transition cursor-pointer">
         🖱️ Mouse
       </button>
-      <button id="btn-restart" class="px-3.5 py-2 rounded-xl bg-pink-100 hover:bg-pink-200 border border-pink-300 text-pink-900 font-semibold text-xs transition cursor-pointer">
+      <button id="btn-restart" class="px-3.5 py-2 rounded-xl bg-pink-200 hover:bg-pink-300 border border-pink-400 text-pink-950 font-semibold text-xs transition cursor-pointer">
         🔄 Reiniciar
       </button>
     </div>
@@ -115,7 +115,7 @@
   <main class="relative flex-1 flex flex-col items-center justify-center px-4 py-5 md:px-8">
 
     <!-- Barra de Estado / Instrucción Rápida -->
-    <div id="status-pill" class="mb-4 px-4 py-1.5 rounded-full bg-white/90 border border-pink-300 text-xs font-bold text-pink-900 flex items-center gap-2 shadow-sm">
+    <div id="status-pill" class="mb-4 px-4 py-1.5 rounded-full bg-white/95 border border-pink-300 text-xs font-bold text-pink-900 flex items-center gap-2 shadow-sm">
       <span class="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></span>
       <span id="status-text">Mueve tu mano abierta (🖐️) sobre una ficha y cierra el puño (✊) para voltearla</span>
     </div>
@@ -126,7 +126,7 @@
     </div>
 
     <!-- Barra Inferior de Palabras Capturadas -->
-    <div class="mt-5 max-w-3xl w-full bg-white/90 border border-pink-300 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-2 z-10 shadow-sm">
+    <div class="mt-5 max-w-3xl w-full bg-white/95 border-2 border-pink-300 rounded-2xl p-3.5 flex flex-wrap items-center justify-between gap-2 z-10 shadow-sm">
       <span class="text-xs font-bold text-pink-700">Conceptos Chinchorro capturados:</span>
       <div id="captured-pills" class="flex flex-wrap gap-1.5">
         <!-- Generado por JS -->
@@ -135,8 +135,8 @@
 
     <!-- Modal Flotante de Palabra Clave al hacer Match -->
     <div id="match-modal" class="hidden fixed inset-0 bg-pink-950/40 backdrop-blur-sm flex items-center justify-center p-4 z-30">
-      <div class="max-w-md w-full bg-white border-2 border-pink-400 rounded-3xl p-6 md:p-7 flex flex-col items-center text-center shadow-2xl">
-        <span class="px-3 py-1 rounded-full bg-pink-100 text-pink-700 text-xs font-extrabold uppercase tracking-widest mb-2">
+      <div class="max-w-md w-full bg-pink-50 border-2 border-pink-400 rounded-3xl p-6 md:p-7 flex flex-col items-center text-center shadow-2xl">
+        <span class="px-3 py-1 rounded-full bg-pink-200 text-pink-800 text-xs font-extrabold uppercase tracking-widest mb-2">
           ¡Par Encontrado! Memoriza este dato
         </span>
         <div id="match-icon" class="text-5xl mb-2">🎭</div>
@@ -146,7 +146,7 @@
         <p id="match-fact" class="text-sm text-pink-950 mb-5 leading-relaxed">
           Dato histórico aquí.
         </p>
-        <div class="w-52 h-2 bg-pink-100 rounded-full overflow-hidden mb-3">
+        <div class="w-52 h-2 bg-pink-200 rounded-full overflow-hidden mb-3">
           <div id="match-timer" class="h-full bg-pink-500 transition-all duration-100" style="width: 100%"></div>
         </div>
         <button onclick="closeMatchModal()" class="px-5 py-2.5 rounded-xl bg-pink-500 hover:bg-pink-600 text-white font-extrabold text-xs transition cursor-pointer shadow">
@@ -160,7 +160,7 @@
       <div class="w-48 h-36 rounded-2xl overflow-hidden border-2 border-pink-400 shadow-2xl bg-pink-950 relative">
         <video id="videoInput" class="hidden" playsinline></video>
         <canvas id="pipCanvas" class="w-full h-full block"></canvas>
-        <div class="absolute bottom-1 inset-x-1.5 flex justify-between items-center text-[10px] font-extrabold px-2 py-0.5 rounded-lg bg-pink-950/80">
+        <div class="absolute bottom-1 inset-x-1.5 flex justify-between items-center text-[10px] font-extrabold px-2 py-0.5 rounded-lg bg-pink-950/85">
           <span class="text-pink-200">TRACKING IA</span>
           <span id="pip-gesture-label" class="text-rose-300">🖐️ ABIERTA</span>
         </div>
@@ -168,15 +168,15 @@
     </div>
 
     <!-- Cursor Virtual de Mano -->
-    <div id="hand-cursor" class="hidden fixed w-12 h-12 -ml-6 -mt-6 rounded-full border-2 border-pink-500 bg-pink-400/30 shadow-lg shadow-pink-500/40 pointer-events-none z-40 flex items-center justify-center text-xl transition-transform duration-75">
+    <div id="hand-cursor" class="hidden fixed w-12 h-12 -ml-6 -mt-6 rounded-full border-2 border-pink-500 bg-pink-400/35 shadow-lg shadow-pink-500/40 pointer-events-none z-40 flex items-center justify-center text-xl transition-transform duration-75">
       🖐️
     </div>
   </main>
 
   <!-- ==================== MODAL DE BIENVENIDA ==================== -->
-  <div id="welcome-modal" class="fixed inset-0 bg-pink-950/45 backdrop-blur-md flex items-center justify-center p-4 z-50">
-    <div class="max-w-xl w-full bg-white border-2 border-pink-300 rounded-3xl p-6 md:p-8 text-center shadow-2xl">
-      <span class="inline-block px-3 py-1 rounded-full bg-pink-100 border border-pink-300 text-pink-700 text-xs font-extrabold uppercase tracking-widest mb-3">
+  <div id="welcome-modal" class="fixed inset-0 bg-pink-950/40 backdrop-blur-md flex items-center justify-center p-4 z-50">
+    <div class="max-w-xl w-full bg-pink-50 border-2 border-pink-300 rounded-3xl p-6 md:p-8 text-center shadow-2xl">
+      <span class="inline-block px-3 py-1 rounded-full bg-pink-200 border border-pink-300 text-pink-800 text-xs font-extrabold uppercase tracking-widest mb-3">
         Concurso Chile Re-Descubre 2026
       </span>
       <div class="text-5xl mb-2">🗿</div>
@@ -188,17 +188,17 @@
       </p>
 
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left mb-6">
-        <div class="bg-pink-50 border border-pink-200 p-3.5 rounded-2xl">
+        <div class="bg-white border border-pink-200 p-3.5 rounded-2xl">
           <div class="text-xl mb-1">🖐️ + ✊</div>
           <p class="text-xs font-bold text-pink-900 mb-1">1. Interacción Natural</p>
           <p class="text-[11px] text-pink-800/80">Apunta tu mano sobre una ficha y cierra el puño (✊) o haz pinza (👌) para voltearla.</p>
         </div>
-        <div class="bg-pink-50 border border-pink-200 p-3.5 rounded-2xl">
+        <div class="bg-white border border-pink-200 p-3.5 rounded-2xl">
           <div class="text-xl mb-1">🗿 + 🧠</div>
           <p class="text-xs font-bold text-pink-900 mb-1">2. Captura 6 Datos</p>
           <p class="text-[11px] text-pink-800/80">Cada par revela una palabra o año clave científico. Memorízalo antes de que se oculte.</p>
         </div>
-        <div class="bg-pink-50 border border-pink-200 p-3.5 rounded-2xl">
+        <div class="bg-white border border-pink-200 p-3.5 rounded-2xl">
           <div class="text-xl mb-1">✍️ + 🏆</div>
           <p class="text-xs font-bold text-pink-900 mb-1">3. Desafío Final</p>
           <p class="text-[11px] text-pink-800/80">Al completar el tablero, demuestra cuánto recuerdas escribiendo los 6 datos clave.</p>
@@ -209,7 +209,7 @@
         <button id="start-cam-welcome" class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-black text-sm md:text-base shadow-lg shadow-pink-400/40 transition transform hover:scale-105 cursor-pointer">
           📷 Jugar con Cámara (MediaPipe)
         </button>
-        <button id="start-mouse-welcome" class="px-6 py-3.5 rounded-2xl bg-pink-100 hover:bg-pink-200 border border-pink-300 text-pink-900 font-bold text-sm md:text-base transition cursor-pointer">
+        <button id="start-mouse-welcome" class="px-6 py-3.5 rounded-2xl bg-pink-200 hover:bg-pink-300 border border-pink-400 text-pink-950 font-bold text-sm md:text-base transition cursor-pointer">
           🖱️ Jugar con Mouse / Táctil
         </button>
       </div>
@@ -218,9 +218,9 @@
 
   <!-- ==================== MODAL DE PRUEBA DE MEMORIA (6 DATOS) ==================== -->
   <div id="recall-modal" class="hidden fixed inset-0 bg-pink-950/50 backdrop-blur-md flex items-center justify-center p-4 z-50">
-    <div class="max-w-lg w-full bg-white border-2 border-pink-400 rounded-3xl p-6 md:p-8 shadow-2xl">
+    <div class="max-w-lg w-full bg-pink-50 border-2 border-pink-400 rounded-3xl p-6 md:p-8 shadow-2xl">
       <div class="text-center mb-5">
-        <span class="inline-block px-3 py-1 rounded-full bg-pink-100 text-pink-700 text-xs font-extrabold uppercase tracking-widest mb-2">
+        <span class="inline-block px-3 py-1 rounded-full bg-pink-200 text-pink-800 text-xs font-extrabold uppercase tracking-widest mb-2">
           🗿 ¡Tablero Completado!
         </span>
         <h2 class="font-title text-2xl md:text-3xl font-black text-pink-800">
@@ -235,27 +235,27 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label class="block text-[11px] font-bold text-pink-700 mb-1">Dato Clave #1</label>
-            <input type="text" id="word-input-0" autocomplete="off" placeholder="Escribe aquí..." class="w-full px-3.5 py-2 rounded-xl bg-pink-50 border border-pink-300 focus:border-pink-500 focus:outline-none text-pink-950 font-bold uppercase text-sm" />
+            <input type="text" id="word-input-0" autocomplete="off" placeholder="Escribe aquí..." class="w-full px-3.5 py-2 rounded-xl bg-white border border-pink-300 focus:border-pink-500 focus:outline-none text-pink-950 font-bold uppercase text-sm" />
           </div>
           <div>
             <label class="block text-[11px] font-bold text-pink-700 mb-1">Dato Clave #2</label>
-            <input type="text" id="word-input-1" autocomplete="off" placeholder="Escribe aquí..." class="w-full px-3.5 py-2 rounded-xl bg-pink-50 border border-pink-300 focus:border-pink-500 focus:outline-none text-pink-950 font-bold uppercase text-sm" />
+            <input type="text" id="word-input-1" autocomplete="off" placeholder="Escribe aquí..." class="w-full px-3.5 py-2 rounded-xl bg-white border border-pink-300 focus:border-pink-500 focus:outline-none text-pink-950 font-bold uppercase text-sm" />
           </div>
           <div>
             <label class="block text-[11px] font-bold text-pink-700 mb-1">Dato Clave #3</label>
-            <input type="text" id="word-input-2" autocomplete="off" placeholder="Escribe aquí..." class="w-full px-3.5 py-2 rounded-xl bg-pink-50 border border-pink-300 focus:border-pink-500 focus:outline-none text-pink-950 font-bold uppercase text-sm" />
+            <input type="text" id="word-input-2" autocomplete="off" placeholder="Escribe aquí..." class="w-full px-3.5 py-2 rounded-xl bg-white border border-pink-300 focus:border-pink-500 focus:outline-none text-pink-950 font-bold uppercase text-sm" />
           </div>
           <div>
             <label class="block text-[11px] font-bold text-pink-700 mb-1">Dato Clave #4</label>
-            <input type="text" id="word-input-3" autocomplete="off" placeholder="Escribe aquí..." class="w-full px-3.5 py-2 rounded-xl bg-pink-50 border border-pink-300 focus:border-pink-500 focus:outline-none text-pink-950 font-bold uppercase text-sm" />
+            <input type="text" id="word-input-3" autocomplete="off" placeholder="Escribe aquí..." class="w-full px-3.5 py-2 rounded-xl bg-white border border-pink-300 focus:border-pink-500 focus:outline-none text-pink-950 font-bold uppercase text-sm" />
           </div>
           <div>
             <label class="block text-[11px] font-bold text-pink-700 mb-1">Dato Clave #5</label>
-            <input type="text" id="word-input-4" autocomplete="off" placeholder="Escribe aquí..." class="w-full px-3.5 py-2 rounded-xl bg-pink-50 border border-pink-300 focus:border-pink-500 focus:outline-none text-pink-950 font-bold uppercase text-sm" />
+            <input type="text" id="word-input-4" autocomplete="off" placeholder="Escribe aquí..." class="w-full px-3.5 py-2 rounded-xl bg-white border border-pink-300 focus:border-pink-500 focus:outline-none text-pink-950 font-bold uppercase text-sm" />
           </div>
           <div>
             <label class="block text-[11px] font-bold text-pink-700 mb-1">Dato Clave #6</label>
-            <input type="text" id="word-input-5" autocomplete="off" placeholder="Escribe aquí..." class="w-full px-3.5 py-2 rounded-xl bg-pink-50 border border-pink-300 focus:border-pink-500 focus:outline-none text-pink-950 font-bold uppercase text-sm" />
+            <input type="text" id="word-input-5" autocomplete="off" placeholder="Escribe aquí..." class="w-full px-3.5 py-2 rounded-xl bg-white border border-pink-300 focus:border-pink-500 focus:outline-none text-pink-950 font-bold uppercase text-sm" />
           </div>
         </div>
 
@@ -268,7 +268,7 @@
 
   <!-- ==================== MODAL DE RESULTADO FINAL ==================== -->
   <div id="result-modal" class="hidden fixed inset-0 bg-pink-950/50 backdrop-blur-md flex items-center justify-center p-4 z-50">
-    <div class="max-w-xl w-full bg-white border-2 border-pink-400 rounded-3xl p-6 md:p-8 text-center shadow-2xl">
+    <div class="max-w-xl w-full bg-pink-50 border-2 border-pink-400 rounded-3xl p-6 md:p-8 text-center shadow-2xl">
       <div id="result-emoji" class="text-6xl mb-2">🗿🏆</div>
       <h2 id="result-title" class="font-title text-2xl md:text-3xl font-black text-pink-700 mb-2">
         ¡Memoria Ancestral Desbloqueada!
@@ -278,7 +278,7 @@
       </p>
 
       <!-- Métricas y desglose de palabras -->
-      <div class="bg-pink-50 p-4 rounded-2xl border border-pink-200 text-left mb-6 space-y-3">
+      <div class="bg-white p-4 rounded-2xl border border-pink-200 text-left mb-6 space-y-3">
         <div class="flex justify-between text-xs font-bold text-pink-800 border-b border-pink-200 pb-2">
           <span>⏱️ Tiempo total: <strong id="final-time" class="text-rose-600">00:00</strong></span>
           <span>🎯 Intentos: <strong id="final-moves" class="text-pink-600">0</strong></span>
@@ -357,7 +357,7 @@
     // =========================================================================
     let audioCtx = null;
     let cameraActive = false;
-    let gamePhase = 'idle'; // 'idle' | 'playing' | 'recall' | 'ended'
+    let gamePhase = 'idle';
     let cards = [];
     let flippedIndices = [];
     let matchedPairIds = [];
@@ -488,15 +488,15 @@
 
         cardBtn.innerHTML = `
           <div id="card-inner-${index}" class="card-inner">
-            <!-- Reverso de la ficha -->
-            <div class="card-face bg-gradient-to-br from-pink-200 via-rose-100 to-pink-200 border-2 border-pink-400 hover:border-pink-500 flex flex-col items-center justify-center p-2 shadow-md">
+            <!-- Reverso de la ficha (Rosita) -->
+            <div class="card-face bg-gradient-to-br from-pink-200 via-rose-100 to-pink-300 border-2 border-pink-400 hover:border-pink-600 flex flex-col items-center justify-center p-2 shadow-md">
               <span class="text-3xl md:text-4xl mb-1">🗿</span>
-              <span class="text-[10px] font-extrabold tracking-widest text-pink-800">CHINCHORRO</span>
+              <span class="text-[10px] font-extrabold tracking-widest text-pink-900">CHINCHORRO</span>
             </div>
             <!-- Frente de la ficha (al voltearse) -->
             <div class="card-face card-front bg-gradient-to-br ${card.colorClass} border-2 flex flex-col items-center justify-center p-2 shadow-lg">
               <span class="text-3xl md:text-4xl mb-1.5 drop-shadow-sm">${card.icon}</span>
-              <span class="text-[10px] md:text-xs font-black tracking-wider text-white bg-pink-900/75 px-2.5 py-0.5 rounded-full">
+              <span class="text-[10px] md:text-xs font-black tracking-wider text-white bg-pink-900/80 px-2.5 py-0.5 rounded-full">
                 ???
               </span>
             </div>
@@ -514,9 +514,9 @@
       let html = '';
       for (let i = 0; i < 6; i++) {
         if (i < matchedPairIds.length) {
-          html += `<span class="px-2.5 py-1 rounded-lg border bg-pink-100 border-pink-400 text-pink-800 text-[11px] font-extrabold">🗿 Dato #${i + 1}</span>`;
+          html += `<span class="px-2.5 py-1 rounded-lg border bg-pink-200 border-pink-400 text-pink-900 text-[11px] font-extrabold">🗿 Dato #${i + 1}</span>`;
         } else {
-          html += `<span class="px-2.5 py-1 rounded-lg bg-pink-50 border border-pink-200 text-[11px] text-pink-400">${i + 1}. ???</span>`;
+          html += `<span class="px-2.5 py-1 rounded-lg bg-pink-50 border border-pink-200 text-[11px] text-pink-500">${i + 1}. ???</span>`;
         }
       }
       container.innerHTML = html;
@@ -664,7 +664,7 @@
         const hit = item.aliases.some((alias) => userAnswers.includes(normalizeWord(alias)));
         if (hit) correctCount++;
         return `
-          <div class="px-2.5 py-1.5 rounded-xl border ${hit ? 'bg-emerald-100 border-emerald-400 text-emerald-900' : 'bg-white border-pink-200 text-pink-400'} font-bold flex items-center justify-between">
+          <div class="px-2.5 py-1.5 rounded-xl border ${hit ? 'bg-emerald-100 border-emerald-400 text-emerald-900' : 'bg-pink-50 border-pink-200 text-pink-400'} font-bold flex items-center justify-between">
             <span>${item.icon} ${item.word}</span>
             <span>${hit ? '✅' : '❌'}</span>
           </div>
