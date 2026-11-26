@@ -98,12 +98,15 @@
     </div>
 
     <!-- Botones de Control -->
-    <div class="flex items-center gap-2">
+    <div class="flex flex-wrap items-center gap-2">
       <button id="btn-cam" class="px-3.5 py-2 rounded-xl bg-pink-500 hover:bg-pink-600 text-white font-extrabold text-xs transition shadow-md shadow-pink-400/40 flex items-center gap-1.5 cursor-pointer">
         <span>📷</span> Activar Cámara
       </button>
       <button id="btn-mouse-mode" class="px-3.5 py-2 rounded-xl bg-pink-200 hover:bg-pink-300 border border-pink-400 text-pink-950 font-semibold text-xs transition cursor-pointer">
         🖱️ Mouse
+      </button>
+      <button id="btn-video" onclick="openVideoModal()" class="px-3.5 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-extrabold text-xs transition shadow-md shadow-rose-400/40 flex items-center gap-1.5 cursor-pointer">
+        <span>🎬</span> Ver Video
       </button>
       <button id="btn-restart" class="px-3.5 py-2 rounded-xl bg-pink-200 hover:bg-pink-300 border border-pink-400 text-pink-950 font-semibold text-xs transition cursor-pointer">
         🔄 Reiniciar
@@ -206,12 +209,61 @@
       </div>
 
       <div class="flex flex-wrap justify-center gap-3">
-        <button id="start-cam-welcome" class="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-black text-sm md:text-base shadow-lg shadow-pink-400/40 transition transform hover:scale-105 cursor-pointer">
+        <button id="start-cam-welcome" class="px-5 py-3.5 rounded-2xl bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-black text-sm shadow-lg shadow-pink-400/40 transition transform hover:scale-105 cursor-pointer">
           📷 Jugar con Cámara (MediaPipe)
         </button>
-        <button id="start-mouse-welcome" class="px-6 py-3.5 rounded-2xl bg-pink-200 hover:bg-pink-300 border border-pink-400 text-pink-950 font-bold text-sm md:text-base transition cursor-pointer">
-          🖱️ Jugar con Mouse / Táctil
+        <button id="start-mouse-welcome" class="px-5 py-3.5 rounded-2xl bg-pink-200 hover:bg-pink-300 border border-pink-400 text-pink-950 font-bold text-sm transition cursor-pointer">
+          🖱️ Jugar con Mouse
         </button>
+        <button onclick="openVideoModal()" class="px-5 py-3.5 rounded-2xl bg-white hover:bg-pink-100 border-2 border-pink-400 text-pink-700 font-extrabold text-sm transition cursor-pointer shadow-sm">
+          🎬 Ver Video Demo
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL DE VIDEO YOUTUBE ==================== -->
+  <div id="video-modal" class="hidden fixed inset-0 bg-pink-950/60 backdrop-blur-md flex items-center justify-center p-4 z-50">
+    <div class="max-w-3xl w-full bg-pink-50 border-2 border-pink-400 rounded-3xl p-5 md:p-6 shadow-2xl">
+      <div class="flex items-center justify-between gap-3 mb-4">
+        <div class="flex items-center gap-2.5">
+          <span class="w-9 h-9 rounded-xl bg-rose-500 text-white flex items-center justify-center text-lg shadow">🎬</span>
+          <div>
+            <h3 class="font-title text-lg md:text-xl font-black text-pink-800 leading-tight">
+              Video Demostración • Chile Re-Descubre
+            </h3>
+            <p class="text-xs text-pink-700 font-semibold">Presentación y funcionamiento con MediaPipe</p>
+          </div>
+        </div>
+        <button onclick="closeVideoModal()" class="px-3.5 py-1.5 rounded-xl bg-pink-200 hover:bg-pink-300 border border-pink-400 text-pink-950 font-extrabold text-xs transition cursor-pointer">
+          ✕ Cerrar
+        </button>
+      </div>
+
+      <!-- Contenedor responsivo 16:9 -->
+      <div class="relative w-full aspect-video rounded-2xl overflow-hidden border-2 border-pink-300 bg-pink-950 shadow-inner">
+        <iframe
+          id="youtube-iframe"
+          class="w-full h-full"
+          src=""
+          title="Video Memorice Ancestral Chinchorro"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+        ></iframe>
+      </div>
+
+      <div class="mt-4 flex flex-wrap items-center justify-between gap-2 text-xs">
+        <span class="text-pink-800 font-medium">¿No carga el reproductor integrado?</span>
+        <a
+          id="youtube-external-link"
+          href="#"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="px-4 py-2 rounded-xl bg-rose-500 hover:bg-rose-600 text-white font-extrabold transition shadow"
+        >
+          Abrir directo en YouTube ↗
+        </a>
       </div>
     </div>
   </div>
@@ -291,13 +343,51 @@
         </div>
       </div>
 
-      <button onclick="resetFullGame()" class="px-7 py-3.5 rounded-2xl bg-pink-500 hover:bg-pink-600 text-white font-black text-sm md:text-base shadow-xl transition cursor-pointer">
-        🔄 Jugar Nuevamente
-      </button>
+      <div class="flex flex-wrap justify-center gap-3">
+        <button onclick="resetFullGame()" class="px-7 py-3.5 rounded-2xl bg-pink-500 hover:bg-pink-600 text-white font-black text-sm md:text-base shadow-xl transition cursor-pointer">
+          🔄 Jugar Nuevamente
+        </button>
+        <button onclick="openVideoModal()" class="px-6 py-3.5 rounded-2xl bg-rose-500 hover:bg-rose-600 text-white font-black text-sm md:text-base shadow-xl transition cursor-pointer">
+          🎬 Ver Video
+        </button>
+      </div>
     </div>
   </div>
 
   <script>
+    // =========================================================================
+    // CONFIGURACIÓN DEL VIDEO DE YOUTUBE (PEGA AQUÍ TU ENLACE DE YOUTUBE)
+    // =========================================================================
+    const YOUTUBE_VIDEO_URL = "https://www.youtube.com/watch?v=TU_ID_DE_VIDEO";
+
+    function getYouTubeEmbedUrl(url) {
+      const match = url.match(/(?:youtube\.com\/(?:watch\?v=|shorts\/|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+      return match ? `https://www.youtube.com/embed/${match[1]}?autoplay=1&rel=0` : url;
+    }
+
+    function openVideoModal() {
+      const modal = document.getElementById('video-modal');
+      const iframe = document.getElementById('youtube-iframe');
+      const extLink = document.getElementById('youtube-external-link');
+
+      iframe.src = getYouTubeEmbedUrl(YOUTUBE_VIDEO_URL);
+      extLink.href = YOUTUBE_VIDEO_URL;
+      modal.classList.remove('hidden');
+    }
+
+    function closeVideoModal() {
+      const modal = document.getElementById('video-modal');
+      const iframe = document.getElementById('youtube-iframe');
+
+      iframe.src = "";
+      modal.classList.add('hidden');
+    }
+
+    // Cerrar modal de video si hacen clic fuera del cuadro
+    document.getElementById('video-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'video-modal') closeVideoModal();
+    });
+
     // =========================================================================
     // 1. DATOS EDUCATIVOS: HITO "MOMIAS CHINCHORRO" (HECHO EN CHILE)
     // =========================================================================
@@ -432,7 +522,7 @@
       elapsedSeconds = 0;
       document.getElementById('timer-display').textContent = '00:00';
       gameClockInterval = setInterval(() => {
-        if (gamePhase === 'playing' && !lockBoard) {
+        if (gamePhase === 'playing' && !lockBoard && document.getElementById('video-modal').classList.contains('hidden')) {
           elapsedSeconds++;
           document.getElementById('timer-display').textContent = formatTime(elapsedSeconds);
         }
@@ -748,7 +838,7 @@
         hoveredCardIndex = -1;
       }
 
-      if (!lm || gamePhase !== 'playing') {
+      if (!lm || gamePhase !== 'playing' || !document.getElementById('video-modal').classList.contains('hidden')) {
         cursorEl.classList.add('hidden');
         if (gestureLabel) gestureLabel.textContent = 'BUSCANDO MANO';
         return;
