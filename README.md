@@ -43,6 +43,5 @@ A través de un tablero de 12 fichas (6 parejas), el usuario descubre los fundam
 ---
 
 ## 🎥 Registro Audiovisual
-- **Cápsula Audiovisual (1 minuto):** *[Enlace al video en YouTube / Drive aquí]*
-
+- **Cápsula Audiovisual:** https://youtu.be/rbM7kDj_yPM?si=fhbGGuzcO4i-b1CA
 ---
